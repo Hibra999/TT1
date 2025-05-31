@@ -1,0 +1,12 @@
+pandas
+numpy
+nixtla>=0.5.1
+neuralforecast
+mlforecast
+statsforecast
+matplotlib
+seaborn
+streamlit
+plotly
+dotenv
+python-dotenv
