@@ -49,7 +49,6 @@ def scrape_ohlcv_forward(exchange, max_retries, symbol, timeframe, since, limit)
         from_ts = last_ts + tf_ms
 
         # Si enableRateLimit=True, CCXT meterá el delay automáticamente
-        # Si quieres algún sleep manual, descomenta la siguiente línea:
         # time.sleep(0.2)
 
     return all_ohlcv
@@ -144,5 +143,6 @@ def get_final_dataframe(dfv1):
     df_reindexed = df.reindex(full_range)
     df_imputado = df_reindexed.ffill()
     final_df = df_imputado.reset_index().rename(columns={"index": "ds", "y": "y"})
+    final_df['unique_id'] = 'series_1' 
     return final_df
 

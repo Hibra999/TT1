@@ -1,9 +1,13 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import os
+import sys
+import asyncio
+if sys.platform.startswith('win'):
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 from utils.data import get_ohlcv_dataframe, get_final_dataframe
 from utils.evaluator import evaluate_forecast
-from utils.plots import normal_plot, forecast_plot, forecast_only_future, plot_dl
+from utils.plots import normal_plot, forecast_plot, forecast_only_future, plot_dl, plot_dl_future_only
 from models.foundation import timegpt, timegpt_long
 from models.dl import auto_nhits
 st.set_page_config(layout="wide")
@@ -59,7 +63,7 @@ match modelo_sel:
         st.write("Pronostico")
         st.pyplot(forecast_only_future(final_df, fcst_df, h, ["TimeGPT"], umbral), use_container_width=True)
     case "auto_nhits":
-        fcst_df = auto_nhits(final_df, h, 2, "optuna")
-        st.write("Futuro Horizon")
+        fcst_df = auto_nhits.forecast_model(final_df, h, 2, "optuna")
         st.dataframe(fcst_df.tail(3))
-        st.pyplot(plot_dl(final_df, fcst_df))
+        st.write("Pronostico")
+        st.pyplot(plot_dl_future_only(final_df, fcst_df, h, umbral))
