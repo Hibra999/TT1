@@ -1,5 +1,4 @@
 from utils.helpers import API
-import matplotlib.pyplot as plt
 nixtla_client = API()
 
 def forecast_model(train_df, h, freq, model="timegpt-1-long-horizon", **kwargs):

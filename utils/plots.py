@@ -1,4 +1,5 @@
 from utils.helpers import API
+from utilsforecast.plotting import plot_series
 nixtla_client = API()
 
 def normal_plot(df):
@@ -28,3 +29,7 @@ def forecast_only_future(final_df,fcst_df, h, model, umbral=30):
         target_col="y",
     )
     return fig 
+
+def plot_dl(train_df, futuro_df):
+    fig = plot_series(train_df, futuro_df)
+    return fig
