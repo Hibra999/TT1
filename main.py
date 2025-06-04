@@ -9,7 +9,7 @@ from utils.data import get_ohlcv_dataframe, get_final_dataframe
 from utils.evaluator import evaluate_forecast
 from utils.plots import normal_plot, forecast_plot, forecast_only_future, plot_dl, plot_dl_future_only
 from models.foundation import timegpt, timegpt_long
-from models.dl import auto_nhits
+from models.dl import auto_nhits, auto_tft
 st.set_page_config(layout="wide")
 
 token = st.selectbox("Token", ["BTC/USDT", "EUR/USDT"])
@@ -63,7 +63,12 @@ match modelo_sel:
         st.write("Pronostico")
         st.pyplot(forecast_only_future(final_df, fcst_df, h, ["TimeGPT"], umbral), use_container_width=True)
     case "auto_nhits":
-        fcst_df = auto_nhits.forecast_model(final_df, h, 2, "optuna")
+        fcst_df = auto_nhits.forecast_model(final_df, h, 10, "optuna")
+        st.dataframe(fcst_df.tail(3))
+        st.write("Pronostico")
+        st.pyplot(plot_dl_future_only(final_df, fcst_df, h, umbral))
+    case "auto_tft":
+        fcst_df = auto_tft.forecast_model(final_df, h, 10, "optuna")
         st.dataframe(fcst_df.tail(3))
         st.write("Pronostico")
         st.pyplot(plot_dl_future_only(final_df, fcst_df, h, umbral))

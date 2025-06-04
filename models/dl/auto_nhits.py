@@ -1,9 +1,6 @@
 from neuralforecast.auto import AutoNHITS
 from neuralforecast import NeuralForecast
-from utilsforecast.plotting import plot_series
 from neuralforecast.losses.pytorch import MAE
-from neuralforecast.tsdataset import TimeSeriesDataset
-
 
 def forecast_model(train_df, h, num_sample, backend):
     forecast = AutoNHITS(
