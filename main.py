@@ -6,10 +6,10 @@ import asyncio
 if sys.platform.startswith('win'):
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 from utils.data import get_ohlcv_dataframe, get_final_dataframe
-from utils.evaluator import evaluate_forecast
-from utils.plots import normal_plot, forecast_plot, forecast_only_future, plot_dl, plot_dl_future_only
+from utils.plots import normal_plot, forecast_plot, forecast_only_future, plot_dl, plot_dl_future_only, forecast_plot_evaluation, forecast_only_test_period
 from models.foundation import timegpt, timegpt_long
 from models.dl import auto_nhits, auto_tft
+from utils.evaluator import evalModelGPT
 st.set_page_config(layout="wide")
 
 token = st.selectbox("Token", ["BTC/USDT", "EUR/USDT"])
@@ -47,9 +47,16 @@ umbral = st.number_input("Umbral", 30)
 st.write("Hora, Dia, Semana, Mes")
 h =  st.selectbox("Horizonte, hrs", [1, 24, 168, 730])
 
+if 'modelo_anterior' not in st.session_state: #Esto es para romper bucles si cambiamos el modelo
+    st.session_state.modelo_anterior = None
+
+if st.session_state.modelo_anterior != modelo_sel:
+    st.session_state.modelo_anterior = modelo_sel
+
 match modelo_sel:
     case "timegpt":
-        fcst_df = timegpt.forecast_model(final_df, h, "h")
+        with st.spinner(f'Ejecutando {modelo_sel}...'):
+            fcst_df = timegpt.forecast_model(final_df, h, "h")
         st.write("Futuro horizon")
         st.dataframe(fcst_df.head(3))
         st.pyplot(forecast_plot(final_df, fcst_df, ["TimeGPT"]), use_container_width=True)
@@ -72,3 +79,24 @@ match modelo_sel:
         st.dataframe(fcst_df.tail(3))
         st.write("Pronostico")
         st.pyplot(plot_dl_future_only(final_df, fcst_df, h, umbral))
+
+#Backtesting
+
+if modelo_sel == "timegpt":
+    d =  st.selectbox("Profundidad", ["Depth = 1", "Depth = 2", "Depth = 3", "Depth = 4", "Depth = 5"])
+    p =  st.selectbox("porcentaje train: ", [70, 75, 80, 85, 90, 95, 99])
+    evaluation_results, test_with_preds = evalModelGPT(final_df, p, "h", "timegpt-1")
+    st.write("TRAIN/TEST")
+    st.pyplot(forecast_plot_evaluation(
+        train_df=final_df[:int(len(final_df) * p)],
+        test_df_with_predictions=test_with_preds,
+        models_to_plot=d
+    ))
+    st.write("ZOOM")
+    st.pyplot(forecast_only_test_period(
+        train_df=final_df[:int(len(final_df) * p)],
+        test_df_with_predictions=test_with_preds,
+        models_to_plot=d,
+        umbral=umbral
+    ))
+
