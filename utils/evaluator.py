@@ -5,35 +5,29 @@ from utils.helpers import API
 
 nixtla_client = API()
 
-def evalModelGPT(dataframe, porcentaje, freq, model):
-    umbral_corte = int(len(dataframe) * porcentaje / 100)
-    train = dataframe.iloc[:umbral_corte].copy()
-    test = dataframe.iloc[umbral_corte:].copy()
-    h = len(test)
-    depths = [1,2,3,4,5]
-    for dep in depths:
-        preds_df = nixtla_client.forecast(
-            df=train,
-            h=h,
-            freq="h",
-            time_col="ds",
-            target_col="y",
-            model=model,
-            level=[90],
-            finetune_steps=5,
-            finetune_loss="mae",
-            finetune_depth=dep,
-            add_history=True 
-        )
-        preds = preds_df["TimeGPT"].values[:h]
-        test[f"Depth = {dep}"] = preds
-    
-    test["unique_id"] = 0
-    evaluationF = evaluate(test, metrics=[mae, mse, rmse], time_col="ds", target_col="y")
+def timeGPTrico(dataframe, horizon, freq, model):
+    h = horizon
+    train_df = dataframe.iloc[:-h].copy()
+    test  = dataframe.iloc[-h:].copy()
+    forecast = nixtla_client.forecast(
+        df=train_df,
+        h=h,
+        freq=freq,
+        time_col="ds",
+        target_col="y",
+        model=model,
+        level=[90],
+        finetune_steps=200,
+        finetune_loss="mae",
+        finetune_depth=5,  
+    )
     results = {
-        'evaluation': evaluationF,
-        'train_data': train,
-        'test_data': test,
-        'predictions': test[[col for col in test.columns if col.startswith("Depth")]]
+        'fcst': forecast,
+        'train_data': test,
     }
     return results
+
+def maeMSEetc(test, fcst):
+    test = test.copy()
+    test.loc[:, "TimeGPT"] = fcst["TimeGPT"].values
+    return evaluate(test,metrics=[mae, mse, rmse], time_col="ds", target_col="y")

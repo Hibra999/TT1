@@ -6,12 +6,18 @@ import asyncio
 if sys.platform.startswith('win'):
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 from utils.data import get_ohlcv_dataframe, get_final_dataframe
-from utils.plots import normal_plot, forecast_plot, forecast_only_future, plot_dl, plot_dl_future_only, forecast_plot_evaluation, forecast_only_test_period
+from utils.plots import normal_plot, forecast_plot, forecast_only_future, plot_dl, plot_dl_future_only, forecast_plot_evaluation, forecast_only_test_period, plot_backtestGPT
 from models.foundation import timegpt, timegpt_long
 from models.dl import auto_nhits, auto_tft
-from utils.evaluator import evalModelGPT
+from utils.evaluator import timeGPTrico, maeMSEetc
 st.set_page_config(layout="wide")
 
+HORIZONTES = {
+    "Hace 1 hora":   1,
+    "Hace 24 horas": 24,
+    "Hace 1 semana": 168,
+    "Hace 1 mes":    730
+}
 token = st.selectbox("Token", ["BTC/USDT", "EUR/USDT"])
 
 @st.cache_data
@@ -78,29 +84,21 @@ if boton1:
 #Backtesting
 
 if modelo_sel == "timegpt":
-    p =  st.selectbox("porcentaje train: ", [90, 95, 99])
+    h_label = st.selectbox("Horizonte", list(HORIZONTES.keys()))
+    p = HORIZONTES[h_label]
     boton3 =  st.button("Ejecutar")
     if boton3:
-        eval_results = evalModelGPT(final_df, p, "h", "timegpt-1")
-        st.session_state.evaluation_results = eval_results
-        st.session_state.evaluation_results = eval_results['evaluation']
-        st.session_state.train_data = eval_results['train_data']
-        st.session_state.test_with_preds = eval_results['test_data']  
-        st.session_state.p_value = p
-        st.write("Resultados")
-        st.dataframe(eval_results['evaluation'])
-        st.write("Df de las predicciones")
-        st.dataframe(eval_results['test_data'].tail())
-    models_to_plot  =  st.multiselect("Profundidad", options=["Depth = 1", "Depth = 2", "Depth = 3", "Depth = 4", "Depth = 5"])
-    boton4 = st.button("Ejecutar ploteo")
-    if boton4:
-        if isinstance(models_to_plot , str):
-            models_to_plot = [models_to_plot]
-        st.write("TRAIN/TEST")
-        st.write("ZOOM")
-        st.pyplot(forecast_only_test_period(
-            train_df=st.session_state.train_data,  
-            test_df_with_predictions=st.session_state.test_with_preds,
-            models_to_plot=models_to_plot,
-            umbral=len(st.session_state.test_with_preds)  
-        ))
+        fcst_new = timeGPTrico(final_df, p, "h", "timegpt-1")
+        st.pyplot(plot_backtestGPT(fcst_new["train_data"], fcst_new["fcst"]))
+        eval_df = maeMSEetc(fcst_new["train_data"], fcst_new["fcst"])
+        st.dataframe(eval_df)
+elif modelo_sel == "timegpt_long":
+    h_label = st.selectbox("Horizonte", list(HORIZONTES.keys()))
+    p = HORIZONTES[h_label]
+    boton3 =  st.button("Ejecutar")
+    if boton3:
+        fcst_new = timeGPTrico(final_df, p, "h", "timegpt-1")
+        st.pyplot(plot_backtestGPT(fcst_new["train_data"], fcst_new["fcst"]))
+        eval_df = maeMSEetc(fcst_new["train_data"], fcst_new["fcst"])
+        st.dataframe(eval_df)
+
