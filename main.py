@@ -63,12 +63,12 @@ match modelo_sel:
         st.write("Pronostico")
         st.pyplot(forecast_only_future(final_df, fcst_df, h, ["TimeGPT"], umbral), use_container_width=True)
     case "auto_nhits":
-        fcst_df = auto_nhits.forecast_model(final_df, h, 10, "optuna")
+        fcst_df = auto_nhits.forecast_model(final_df, h, 2, "optuna")
         st.dataframe(fcst_df.tail(3))
         st.write("Pronostico")
         st.pyplot(plot_dl_future_only(final_df, fcst_df, h, umbral))
     case "auto_tft":
-        fcst_df = auto_tft.forecast_model(final_df, h, 10, "optuna")
+        fcst_df = auto_tft.forecast_model(final_df, h, 2, "optuna")
         st.dataframe(fcst_df.tail(3))
         st.write("Pronostico")
         st.pyplot(plot_dl_future_only(final_df, fcst_df, h, umbral))
