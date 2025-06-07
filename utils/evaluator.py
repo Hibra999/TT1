@@ -6,7 +6,7 @@ from utils.helpers import API
 nixtla_client = API()
 
 def evalModelGPT(dataframe, porcentaje, freq, model):
-    umbral_corte = int(len(dataframe) * porcentaje)
+    umbral_corte = int(len(dataframe) * porcentaje / 100)
     train = dataframe[:umbral_corte] 
     test = dataframe[umbral_corte:] 
     h = len(test)
