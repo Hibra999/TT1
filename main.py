@@ -35,14 +35,14 @@ for entry in os.listdir(MODELOS_DIR):
     if os.path.isdir(full_path):
         categorias.append(entry)
 
-categoria_sel = st.selectbox("Categoria", sorted(categorias))
+categoria_sel = st.selectbox("Categoria", categorias)
 modelos_disponibles = []
 cat_path = os.path.join(MODELOS_DIR, categoria_sel)
 for fname in os.listdir(cat_path):
     if fname.endswith(".py") and not fname.startswith("__"):
         modelos_disponibles.append(fname[:-3])  
 
-modelo_sel = st.selectbox("Selecciona un modelo", sorted(modelos_disponibles))
+modelo_sel = st.selectbox("Selecciona un modelo", modelos_disponibles)
 umbral = st.number_input("Umbral", 30)
 st.write("Hora, Dia, Semana, Mes")
 h =  st.selectbox("Horizonte, hrs", [1, 24, 168, 730])
