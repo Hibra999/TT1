@@ -76,23 +76,31 @@ if boton1:
             st.pyplot(plot_dl_future_only(final_df, fcst_df, h, umbral))
     
 #Backtesting
-boton2 = st.button("Ejecutar backtesting") #BOTON LOCO
-if boton2:
-    if modelo_sel == "timegpt":
-        d =  st.selectbox("Profundidad", ["Depth = 1", "Depth = 2", "Depth = 3", "Depth = 4", "Depth = 5"])
-        p =  st.selectbox("porcentaje train: ", [70, 75, 80, 85, 90, 95, 99])
-        evaluation_results, test_with_preds = evalModelGPT(final_df, p, "h", "timegpt-1")
+
+if modelo_sel == "timegpt":
+    p =  st.selectbox("porcentaje train: ", [90, 95, 99])
+    boton3 =  st.button("Ejecutar")
+    if boton3:
+        eval_results = evalModelGPT(final_df, p, "h", "timegpt-1")
+        st.session_state.evaluation_results = eval_results
+        st.session_state.evaluation_results = eval_results['evaluation']
+        st.session_state.train_data = eval_results['train_data']
+        st.session_state.test_with_preds = eval_results['test_data']  
+        st.session_state.p_value = p
+        st.write("Resultados")
+        st.dataframe(eval_results['evaluation'])
+        st.write("Df de las predicciones")
+        st.dataframe(eval_results['test_data'].tail())
+    models_to_plot  =  st.multiselect("Profundidad", options=["Depth = 1", "Depth = 2", "Depth = 3", "Depth = 4", "Depth = 5"])
+    boton4 = st.button("Ejecutar ploteo")
+    if boton4:
+        if isinstance(models_to_plot , str):
+            models_to_plot = [models_to_plot]
         st.write("TRAIN/TEST")
-        st.pyplot(forecast_plot_evaluation(
-            train_df=final_df[:int(len(final_df) * p)],
-            test_df_with_predictions=test_with_preds,
-            models_to_plot=d
-        ))
         st.write("ZOOM")
         st.pyplot(forecast_only_test_period(
-            train_df=final_df[:int(len(final_df) * p)],
-            test_df_with_predictions=test_with_preds,
-            models_to_plot=d,
-            umbral=umbral
+            train_df=st.session_state.train_data,  
+            test_df_with_predictions=st.session_state.test_with_preds,
+            models_to_plot=models_to_plot,
+            umbral=len(st.session_state.test_with_preds)  
         ))
-

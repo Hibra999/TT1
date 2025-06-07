@@ -7,16 +7,15 @@ nixtla_client = API()
 
 def evalModelGPT(dataframe, porcentaje, freq, model):
     umbral_corte = int(len(dataframe) * porcentaje / 100)
-    train = dataframe[:umbral_corte] 
-    test = dataframe[umbral_corte:] 
+    train = dataframe.iloc[:umbral_corte].copy()
+    test = dataframe.iloc[umbral_corte:].copy()
     h = len(test)
-    test = test.copy()
     depths = [1,2,3,4,5]
     for dep in depths:
         preds_df = nixtla_client.forecast(
             df=train,
             h=h,
-            freq=freq,
+            freq="h",
             time_col="ds",
             target_col="y",
             model=model,
@@ -26,9 +25,15 @@ def evalModelGPT(dataframe, porcentaje, freq, model):
             finetune_depth=dep,
             add_history=True 
         )
-        preds = preds_df["TimeGPT"].values
-        test.loc[:,f"Depth = {dep} "] = preds
+        preds = preds_df["TimeGPT"].values[:h]
+        test[f"Depth = {dep}"] = preds
     
     test["unique_id"] = 0
     evaluationF = evaluate(test, metrics=[mae, mse, rmse], time_col="ds", target_col="y")
-    return evaluationF, test
+    results = {
+        'evaluation': evaluationF,
+        'train_data': train,
+        'test_data': test,
+        'predictions': test[[col for col in test.columns if col.startswith("Depth")]]
+    }
+    return results

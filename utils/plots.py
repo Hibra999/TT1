@@ -47,30 +47,11 @@ def plot_dl_future_only(train_df, futuro_df, h, umbral=30): # estas son para las
 #PLOTS PARA EL BACKTESTNG(por el momento solo para TimeGPT)
 
 def forecast_plot_evaluation(train_df, test_df_with_predictions, models_to_plot):
-    combined_df = pd.concat([train_df, test_df_with_predictions], ignore_index=True)
-    fcst_df = test_df_with_predictions[["ds", "unique_id"] + models_to_plot].copy()
-    
-    fig = nixtla_client.plot(
-        combined_df,
-        fcst_df,
-        time_col="ds",
-        target_col="y",
-        level=[90],
-        models=models_to_plot
-    )
-    return fig
+    filtered_test_df = test_df_with_predictions[['unique_id', 'ds', 'y'] + models_to_plot]
+    return plot_series(train_df, filtered_test_df)
 
-def forecast_only_test_period(train_df, test_df_with_predictions, models_to_plot, umbral=30):
-    train_context = train_df.tail(umbral)
-    combined_df = pd.concat([train_context, test_df_with_predictions], ignore_index=True)
-    fcst_df = test_df_with_predictions[["ds", "unique_id"] + models_to_plot].copy()
-    
-    fig = nixtla_client.plot(
-        combined_df,
-        fcst_df,
-        time_col="ds",
-        target_col="y",
-        level=[90],
-        models=models_to_plot
-    )
-    return fig
+def forecast_only_test_period(train_df, test_df_with_predictions, models_to_plot, umbral):
+    umbral = len(test_df_with_predictions)
+    tail_train = train_df.tail(umbral)
+    filtered_test_df = test_df_with_predictions[['unique_id', 'ds', 'y'] + models_to_plot]
+    return plot_series(tail_train, filtered_test_df)
