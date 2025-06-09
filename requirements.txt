@@ -11,3 +11,4 @@ plotly
 dotenv
 python-dotenv
 ccxt
+prophet

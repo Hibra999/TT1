@@ -42,6 +42,30 @@ def plot_dl_future_only(train_df, futuro_df, h, umbral=30): # estas son para las
     fig = plot_series(train_subset, futuro_subset)
     return fig
 
+def plot_prophet_forecast(model, forecast): #Solo para prophet
+    fig = model.plot(forecast)
+    return fig
+
+def plot_prophet_future_only(train_df, forecast_df, h, umbral=30): #Igual solamente para prophet
+    train_subset = train_df.tail(umbral)
+    future_subset = forecast_df.tail(h)
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(train_subset['ds'], train_subset['y'], 
+           label='Histórico', color='black', linewidth=2)
+    ax.plot(future_subset['ds'], future_subset['yhat'], 
+           label='Predicción', color='red', linewidth=2)
+    ax.fill_between(future_subset['ds'], 
+                   future_subset['yhat_lower'], 
+                   future_subset['yhat_upper'],
+                   alpha=0.3, color='blue', label='Intervalo 95%')
+    ax.set_xlabel('ds')
+    ax.set_ylabel('y')
+    ax.set_title('Forecast Prophet')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    return fig
 
 
 #PLOTS PARA EL BACKTESTNG(por el momento solo para TimeGPT)

@@ -6,10 +6,10 @@ import asyncio
 if sys.platform.startswith('win'):
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 from utils.data import get_ohlcv_dataframe, get_final_dataframe
-from utils.plots import normal_plot, forecast_plot, forecast_only_future, plot_dl, plot_dl_future_only, forecast_plot_evaluation, forecast_only_test_period, plot_backtestGPT
+from utils.plots import normal_plot, forecast_plot, forecast_only_future, plot_prophet_forecast, plot_prophet_future_only, plot_dl_future_only, forecast_plot_evaluation, forecast_only_test_period, plot_backtestGPT
 from models.foundation import timegpt, timegpt_long
 from models.dl import auto_nhits, auto_tft
-from models.stats import auto_arima
+from models.stats import auto_arima, prophet
 from utils.evaluator import timeGPTrico, maeMSEetc
 st.set_page_config(layout="wide")
 
@@ -85,7 +85,12 @@ if boton1:
             fcst_df = auto_arima.forecast_model(final_df, h, "h", [90])
             st.dataframe(fcst_df.tail(3))
             st.pyplot(plot_dl_future_only(final_df, fcst_df, h, umbral))
-    
+        elif modelo_sel == "prophet":
+            model, fcst_df = prophet.forecast_model(final_df, h, "h", [90])
+            st.dataframe(fcst_df.tail(3))
+            st.pyplot(plot_prophet_forecast(model, fcst_df))
+            st.write("Futuro")
+            st.pyplot(plot_prophet_future_only(final_df, fcst_df, h, umbral))
 #Backtesting
 st.write("Backstesting")
 if modelo_sel == "timegpt":
